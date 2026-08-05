@@ -1,5 +1,9 @@
 # News
 
+## 0.1.0
+
+Official release after internal testing.
+
 ## 0.0.1
 
 Initial release. The shared CubeCL primitives previously living inside

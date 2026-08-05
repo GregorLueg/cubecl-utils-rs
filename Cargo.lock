@@ -696,7 +696,7 @@ dependencies = [
 
 [[package]]
 name = "cubecl-utils-rs"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "cubecl",
  "num-traits",
