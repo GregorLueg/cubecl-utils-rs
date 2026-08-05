@@ -1,3 +1,8 @@
+[![CI](https://github.com/GregorLueg/cubecl-utils-rs/actions/workflows/test.yml/badge.svg)](https://github.com/GregorLueg/cubecl-utils-rs/actions/workflows/test.yml)
+[![Crates.io](https://img.shields.io/crates/v/cubecl-utils-rs.svg)](https://crates.io/crates/cubecl-utils-rs)
+[![docs.rs](https://img.shields.io/docsrs/cubecl-utils-rs)](https://docs.rs/cubecl-utils-rs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # cubecl-utils-rs
 
 Shared [CubeCL](https://github.com/tracel-ai/cubecl) helpers: GPU tensors,
