@@ -1,0 +1,38 @@
+[package]
+name = "cubecl-utils-rs"
+version = "0.0.1"
+edition = "2021"
+authors = ["Gregor Lueg <gregorlueg@me.com>"]
+license = "MIT"
+repository = "https://github.com/GregorLueg/cubecl-utils-rs"
+description = "Shared CubeCL helpers: GPU tensors, device-limit queries and validated dispatch geometry."
+keywords = ["gpu", "cubecl", "wgpu", "tensor"]
+categories = ["science", "hardware-support"]
+
+[lib]
+name = "cubecl_utils_rs"
+path = "src/lib.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+############
+# Features #
+############
+
+[features]
+## Enables tests that require a real GPU. This is for CI/CD.
+gpu-tests = []
+
+################
+# Dependencies #
+################
+
+[dependencies]
+cubecl = "0.10.0"
+num-traits = "0.2.19"
+thiserror = "2.0.18"
+
+[dev-dependencies]
+cubecl = { version = "0.10.0", features = ["wgpu", "cpu"] }
