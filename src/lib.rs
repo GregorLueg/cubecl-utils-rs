@@ -34,7 +34,7 @@
 //! # use cubecl::prelude::*;
 //! use cubecl_utils_rs::prelude::*;
 //!
-//! # fn demo<R: Runtime>(client: &ComputeClient<R>, n_blocks: u32) -> Result<(), CubeclUtilsErrors> {
+//! # fn demo(client: &Client, n_blocks: u32) -> Result<(), CubeclUtilsErrors> {
 //! let limits = GpuLimits::from_client(client);
 //! let (gx, gy) = grid_2d(n_blocks, &limits)?;
 //! let count = checked_cube_count("my_kernel", gx, gy, 1, &limits)?;

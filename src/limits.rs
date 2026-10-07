@@ -68,7 +68,7 @@ impl GpuLimits {
     /// wgpu implementation returns `u16::MAX` on every device regardless of
     /// what the adapter actually supports, which is a safe floor but discards
     /// headroom on hardware that allows more.
-    pub fn from_client<R: Runtime>(client: &ComputeClient<R>) -> Self {
+    pub fn from_client(client: &Client) -> Self {
         let props = client.properties();
         let hw = &props.hardware;
         Self {

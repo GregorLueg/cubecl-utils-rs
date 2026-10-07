@@ -1,6 +1,7 @@
 //! GPU-resident tensor.
 
 use cubecl::prelude::*;
+
 use cubecl::server::Handle;
 use cubecl::zspace::striding::row_major_contiguous_strides;
 use cubecl::zspace::{Shape, Strides};
@@ -14,32 +15,29 @@ use crate::limits::{fits_binding, GpuLimits};
 ///////////////
 
 /// GPU-resident tensor for use with CubeCL kernels.
-pub struct GpuTensor<R: Runtime, F: CubeElement + Numeric> {
+pub struct GpuTensor<F: CubeElement + Numeric> {
     /// Handle to the GPU buffer containing tensor data
     data: Handle,
     /// Dimensions of the tensor (e.g. `[n_rows, n_cols]`)
     shape: Vec<usize>,
     /// Memory strides for each dimension in row-major order
     strides: Vec<usize>,
-    /// Phantom marker for the runtime type
-    _r: PhantomData<R>,
     /// Phantom marker for the element type
     _f: PhantomData<F>,
 }
 
-impl<R: Runtime, F: CubeElement + Numeric> Clone for GpuTensor<R, F> {
+impl<F: CubeElement + Numeric> Clone for GpuTensor<F> {
     fn clone(&self) -> Self {
         Self {
             data: self.data.clone(),
             shape: self.shape.clone(),
             strides: self.strides.clone(),
-            _r: PhantomData,
             _f: PhantomData,
         }
     }
 }
 
-impl<R: Runtime, F: Numeric + CubeElement> GpuTensor<R, F> {
+impl<F: Numeric + CubeElement> GpuTensor<F> {
     /// Byte size of a tensor with the given shape.
     ///
     /// ### Params
@@ -68,7 +66,7 @@ impl<R: Runtime, F: Numeric + CubeElement> GpuTensor<R, F> {
     pub fn from_slice(
         data: &[F],
         shape: Vec<usize>,
-        client: &ComputeClient<R>,
+        client: &Client,
     ) -> Result<Self, CubeclUtilsErrors> {
         fits_binding(Self::byte_size(&shape), &GpuLimits::from_client(client))?;
 
@@ -78,7 +76,6 @@ impl<R: Runtime, F: Numeric + CubeElement> GpuTensor<R, F> {
             data: handle,
             shape,
             strides,
-            _r: PhantomData,
             _f: PhantomData,
         })
     }
@@ -102,7 +99,7 @@ impl<R: Runtime, F: Numeric + CubeElement> GpuTensor<R, F> {
     /// something writes them. On a large buffer the first kernel write pays
     /// that fault and can cost more than the kernel itself, so prefer reusing
     /// one scratch tensor over allocating per call. See [`Self::reshaped_view`].
-    pub fn empty(shape: Vec<usize>, client: &ComputeClient<R>) -> Result<Self, CubeclUtilsErrors> {
+    pub fn empty(shape: Vec<usize>, client: &Client) -> Result<Self, CubeclUtilsErrors> {
         let size = Self::byte_size(&shape);
         fits_binding(size, &GpuLimits::from_client(client))?;
 
@@ -112,7 +109,6 @@ impl<R: Runtime, F: Numeric + CubeElement> GpuTensor<R, F> {
             data: handle,
             shape,
             strides,
-            _r: PhantomData,
             _f: PhantomData,
         })
     }
@@ -124,7 +120,7 @@ impl<R: Runtime, F: Numeric + CubeElement> GpuTensor<R, F> {
     /// A `TensorArg` suitable for passing to CubeCL kernels. Vectorisation
     /// width is not set per tensor; it is passed once at launch as the argument
     /// for the kernel's `N: Size` generic.
-    pub fn into_tensor_arg(&self) -> TensorArg<R> {
+    pub fn into_tensor_arg(&self) -> TensorArg {
         unsafe {
             TensorArg::from_raw_parts(
                 self.data.clone(),
@@ -152,7 +148,7 @@ impl<R: Runtime, F: Numeric + CubeElement> GpuTensor<R, F> {
     /// produced by [`Self::reshaped_view`], where the underlying allocation is
     /// larger than the view: the runtime hands back the whole binding, and
     /// returning that would silently include another view's data.
-    pub fn read(self, client: &ComputeClient<R>) -> Result<Vec<F>, CubeclUtilsErrors> {
+    pub fn read(self, client: &Client) -> Result<Vec<F>, CubeclUtilsErrors> {
         let len = self.len();
         let bytes = client.read_one(self.data)?;
         let mut values = F::from_bytes(&bytes).to_vec();
@@ -217,7 +213,6 @@ impl<R: Runtime, F: Numeric + CubeElement> GpuTensor<R, F> {
             data: self.data.clone(),
             shape,
             strides,
-            _r: PhantomData,
             _f: PhantomData,
         }
     }
@@ -253,13 +248,14 @@ impl<R: Runtime, F: Numeric + CubeElement> GpuTensor<R, F> {
 mod tests {
     use super::*;
     use cubecl::cpu::{CpuDevice, CpuRuntime};
+    use cubecl_runtime::runtime::Runtime;
 
     #[test]
     fn test_tensor_from_slice_and_read() {
         let client = CpuRuntime::client(&CpuDevice);
 
         let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-        let tensor = GpuTensor::<CpuRuntime, f32>::from_slice(&data, vec![2, 3], &client).unwrap();
+        let tensor = GpuTensor::<f32>::from_slice(&data, vec![2, 3], &client).unwrap();
 
         assert_eq!(tensor.read(&client).unwrap(), data);
     }
@@ -268,7 +264,7 @@ mod tests {
     fn test_tensor_empty() {
         let client = CpuRuntime::client(&CpuDevice);
 
-        let tensor = GpuTensor::<CpuRuntime, f32>::empty(vec![3, 4], &client).unwrap();
+        let tensor = GpuTensor::<f32>::empty(vec![3, 4], &client).unwrap();
 
         assert_eq!(tensor.shape(), &[3, 4]);
         assert_eq!(tensor.len(), 12);
@@ -281,7 +277,7 @@ mod tests {
         let client = CpuRuntime::client(&CpuDevice);
 
         let data: Vec<f32> = (0..12).map(|i| i as f32).collect();
-        let tensor = GpuTensor::<CpuRuntime, f32>::from_slice(&data, vec![3, 4], &client).unwrap();
+        let tensor = GpuTensor::<f32>::from_slice(&data, vec![3, 4], &client).unwrap();
         let view = tensor.reshaped_view(vec![2, 3]);
 
         assert_eq!(view.shape(), &[2, 3]);
@@ -298,7 +294,7 @@ mod tests {
         // One element past what a single binding takes.
         let too_many = (limit / 4) as usize + 1;
         assert!(matches!(
-            GpuTensor::<CpuRuntime, f32>::empty(vec![too_many], &client),
+            GpuTensor::<f32>::empty(vec![too_many], &client),
             Err(CubeclUtilsErrors::BindingTooLarge { .. })
         ));
     }
