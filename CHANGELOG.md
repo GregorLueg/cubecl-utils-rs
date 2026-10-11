@@ -1,5 +1,12 @@
 # News
 
+## 0.2.0
+
+**Features**
+
+- Version bump to `cubecl="0.11.0"` which introduces breaking changes that will
+  percolate from here to the other packages.
+
 ## 0.1.0
 
 Official release after internal testing.
