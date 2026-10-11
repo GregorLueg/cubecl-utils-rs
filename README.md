@@ -35,9 +35,19 @@ let (gx, gy) = grid_2d(n_blocks, &limits)?;
 let count = checked_cube_count("my_kernel", gx, gy, 1, &limits)?;
 ```
 
-Only `GpuLimits::from_client` touches a `ComputeClient`. Everything downstream
-of it takes limits as data, which is what makes behaviour on a 16 KiB device
-testable on a machine that has 32 KiB.
+Only `GpuLimits::from_client` and the `GpuTensor` constructors touch a
+client. Everything downstream takes limits as data, which is what makes
+behaviour on a 16 KiB device testable on a machine that has 32 KiB.
+
+Since CubeCL 0.11 the client is type-erased, so nothing here carries a runtime
+generic. A tensor is `GpuTensor<F>`, not `GpuTensor<R, F>`:
+
+```rust
+let x = GpuTensor::<f32>::from_slice(&data, vec![n, dim], &client)?;
+let out = GpuTensor::<f32>::empty(vec![n, k], &client)?;
+// ... launch with x.into_tensor_arg(), out.into_tensor_arg() ...
+let res = out.read(&client)?;
+```
 
 ## What is in here
 
@@ -47,10 +57,27 @@ testable on a machine that has 32 KiB.
 | `GpuLimits` | shared memory, cube count, cube dim, units per cube, binding size, plane range |
 | `grid_2d`, `grid_2d_limited` | flat cube count into a 2D grid within the device limit |
 | `checked_cube_count` | validated `CubeCount`, naming the kernel on failure |
+| `fits_binding` | allocation size against the per-binding limit |
+| `fits_shared_memory` | a kernel's shared-memory footprint against the budget, naming the kernel on failure |
+| `resident_workgroups` | how many workgroups of a given footprint stay resident |
 | `resolve_workgroup_size` | preferred width capped and rounded to whole planes |
 | `plane_uniform`, `plane_partitions` | guards before reaching for plane primitives |
-| `pad_vectors`, `LINE_SIZE` | row padding to a vectorisation boundary |
+| `pad_vectors`, `padded_dim`, `LINE_SIZE` | row padding to a vectorisation boundary |
 | `CubeclFloat` | float bound for element-generic kernels |
+| `CubeclUtilsErrors` | the one error type everything above returns |
+
+The prelude also re-exports CubeCL's `Runtime` trait, so `R::client(&device)`
+works without importing it from `cubecl-runtime`.
+
+## CubeCL versions
+
+CubeCL breaks its API between minor versions, and the types here go straight
+into kernel launches, so pin the pair.
+
+| cubecl-utils-rs | cubecl |
+|---|---|
+| 0.2 | 0.11 |
+| 0.0.1, 0.1 | 0.10 |
 
 ## Backends
 
