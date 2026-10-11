@@ -9,7 +9,6 @@
 
 #![cfg(feature = "gpu-tests")]
 
-use cubecl::prelude::*;
 use cubecl::wgpu::{WgpuDevice, WgpuRuntime};
 
 use cubecl_utils_rs::prelude::*;
@@ -17,7 +16,7 @@ use cubecl_utils_rs::prelude::*;
 /// Print every limit the crate reads, for whichever backend is active.
 #[test]
 fn test_report_device_limits() {
-    let client = WgpuRuntime::client(&WgpuDevice::default());
+    let client = <WgpuRuntime>::client(&WgpuDevice::default());
     let limits = GpuLimits::from_client(&client);
 
     println!("--- device limits ---");
@@ -68,7 +67,7 @@ fn test_report_device_limits() {
 /// The geometry helpers must agree with the device they just read.
 #[test]
 fn test_derived_geometry_is_legal_on_this_device() {
-    let client = WgpuRuntime::client(&WgpuDevice::default());
+    let client = <WgpuRuntime>::client(&WgpuDevice::default());
     let limits = GpuLimits::from_client(&client);
 
     for total in [1u32, 1_000, 65_535, 65_536, 1_000_000, 10_000_000] {
