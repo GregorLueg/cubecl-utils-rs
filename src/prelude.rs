@@ -11,3 +11,4 @@ pub use crate::limits::{
 };
 pub use crate::tensor::GpuTensor;
 pub use crate::traits::CubeclFloat;
+pub use cubecl_runtime::runtime::Runtime;
