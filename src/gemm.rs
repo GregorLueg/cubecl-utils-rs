@@ -29,10 +29,12 @@ use crate::traits::CubeclFloat;
 // Consts //
 ////////////
 
-/// Output rows per workgroup in [`skinny_gemm_partial`](fn@skinny_gemm_partial).
+/// Output rows per workgroup in
+/// [`skinny_gemm_partial`](fn@skinny_gemm_partial).
 const SG_BM: u32 = 128;
 
-/// Output columns per workgroup in [`skinny_gemm_partial`](fn@skinny_gemm_partial).
+/// Output columns per workgroup in
+/// [`skinny_gemm_partial`](fn@skinny_gemm_partial).
 ///
 /// Fixed rather than tiered to the output width so there is one shader. Narrow
 /// outputs waste part of the tile, but the waste is in the narrow axis and never
@@ -58,7 +60,8 @@ const SG_TN: u32 = SG_BN / SG_RT_N;
 /// Thread rows per workgroup.
 const SG_TM: u32 = SG_BM / SG_RT_M;
 
-/// Workgroup width of [`skinny_gemm_partial`](fn@skinny_gemm_partial): 128 threads, four planes of 32.
+/// Workgroup width of [`skinny_gemm_partial`](fn@skinny_gemm_partial): 128
+/// threads, four planes of 32.
 pub const SG_THREADS: u32 = SG_TM * SG_TN;
 
 /// Output tiles the split-K heuristic aims to dispatch before it stops

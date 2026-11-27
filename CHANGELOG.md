@@ -1,5 +1,18 @@
 # News
 
+## 0.3.0
+
+**Features**
+
+- Scope widens from helpers to shared kernels, starting with dense GEMM so
+  downstream crates stop carrying their own copies.
+- `skinny_gemm` for a long reduction into a small output (`A^T B`, `A B^T`,
+  Gram matrices), with split-K. `skinny_chunks` and `skinny_partial_elems`
+  size its scratch buffer.
+- `tall_skinny_gemm` for a tall `A` against a small `B`, inner dimension up to
+  `TSMM_K_MAX`.
+- New errors `BufferTooSmall` and `InnerDimTooLarge`.
+
 ## 0.2.0
 
 **Features**
