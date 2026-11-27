@@ -1,5 +1,6 @@
-//! Shared CubeCL helpers: GPU tensors, device-limit queries and validated
-//! dispatch geometry. No algorithms and no kernels.
+//! Shared CubeCL helpers: GPU tensors, device-limit queries, validated
+//! dispatch geometry, and dense GEMM kernels for the shapes cubek handles
+//! badly. No algorithms beyond that.
 //!
 //! # Why this exists
 //!
@@ -45,6 +46,7 @@
 #![warn(missing_docs)]
 
 pub mod errors;
+pub mod gemm;
 pub mod layout;
 pub mod limits;
 pub mod prelude;
@@ -52,6 +54,9 @@ pub mod tensor;
 pub mod traits;
 
 pub use crate::errors::CubeclUtilsErrors;
+pub use crate::gemm::{
+    skinny_chunks, skinny_gemm, skinny_partial_elems, tall_skinny_gemm, TSMM_K_MAX,
+};
 pub use crate::layout::{pad_vectors, padded_dim, LINE_SIZE};
 pub use crate::limits::{
     checked_cube_count, fits_binding, fits_shared_memory, grid_2d, grid_2d_limited,
