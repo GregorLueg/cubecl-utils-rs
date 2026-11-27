@@ -1,12 +1,12 @@
 [package]
 name = "cubecl-utils-rs"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Gregor Lueg <gregorlueg@me.com>"]
 license = "MIT"
 repository = "https://github.com/GregorLueg/cubecl-utils-rs"
-description = "Shared CubeCL helpers: GPU tensors, device-limit queries and validated dispatch geometry."
-keywords = ["gpu", "cubecl", "wgpu", "tensor"]
+description = "Shared CubeCL helpers: GPU tensors, device-limit queries, validated dispatch geometry and dense GEMM kernels."
+keywords = ["gpu", "cubecl", "wgpu", "tensor", "gemm"]
 categories = ["science", "hardware-support"]
 
 [lib]

@@ -84,6 +84,39 @@ pub enum CubeclUtilsErrors {
         available: usize,
     },
 
+    /// A buffer holds fewer elements than a kernel will touch.
+    ///
+    /// Unchecked launches read and write past the end of a short buffer without
+    /// an error, so the dispatchers check every operand on the host first.
+    #[error(
+        "Kernel '{kernel}' needs {required} elements in buffer '{buffer}', but it holds only \
+         {provided}."
+    )]
+    BufferTooSmall {
+        /// Name of the kernel that would have overrun the buffer
+        kernel: &'static str,
+        /// Name of the buffer that is too short
+        buffer: &'static str,
+        /// Elements the kernel touches
+        required: usize,
+        /// Elements the buffer holds
+        provided: usize,
+    },
+
+    /// A GEMM's inner dimension exceeds what its shared-memory staging holds.
+    #[error(
+        "Kernel '{kernel}' stages an inner dimension of at most {max}, but {requested} was \
+         requested."
+    )]
+    InnerDimTooLarge {
+        /// Name of the kernel whose staging is too small
+        kernel: &'static str,
+        /// Inner dimension that was requested
+        requested: usize,
+        /// Largest inner dimension the kernel stages
+        max: usize,
+    },
+
     /// Propagate errors from the CubeCL runtime.
     #[error("Error from the cubecl runtime: {0}")]
     CubeClServerError(#[from] ServerError),
